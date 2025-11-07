@@ -1,0 +1,47 @@
+name: Deploy Static HTML Page to GitHub Pages
+
+on:
+  # Kích hoạt workflow mỗi khi có push lên nhánh 'main' (hoặc 'master')
+  push:
+    branches: ["master", "main"]
+  # Cho phép chạy workflow thủ công từ tab 'Actions'
+  workflow_dispatch:
+
+# Cấu hình quyền truy cập cần thiết cho các Actions
+permissions:
+  contents: read # Cần thiết để checkout code
+  pages: write   # Cần thiết để deploy lên GitHub Pages
+  id-token: write # Cần thiết cho xác thực OIDC
+
+jobs:
+  # Job có tên 'deploy'
+  deploy:
+    environment:
+      # Tên môi trường phải là 'github-pages'
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        # Lấy lịch sử commit để hỗ trợ cho việc deploy
+
+      # Bước 1: Thiết lập Pages
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+        
+      # Bước 2: Upload Artifact (Các file tĩnh của bạn)
+      # Vì bạn có một trang HTML tĩnh, các tệp của bạn (index.html, css, js) 
+      # thường nằm ở thư mục gốc của repository.
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # Đường dẫn chứa các file tĩnh (Ví dụ: . là thư mục gốc)
+          path: '.' 
+
+      # Bước 3: Deploy lên GitHub Pages
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
